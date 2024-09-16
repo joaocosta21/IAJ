@@ -142,8 +142,9 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             if(currentClosedNode != null){
                 if(newCost < currentClosedNode.gCost){
                     currentClosedNode.parent = parentNode;
-                    currentClosedNode.gCost = newCost;
-                    currentClosedNode.CalculateFCost(0);
+                    currentClosedNode.gCost = parentNode.gCost + connection.Cost;
+                    currentClosedNode.fCost = newCost;
+                    currentClosedNode.hCost = newCost - currentClosedNode.gCost;
                     Closed.Remove(currentClosedNode);
                     Open.Add(currentClosedNode);
 
@@ -153,14 +154,16 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             else if(currentOpenNode != null){
                 if(newCost < currentOpenNode.gCost){
                     currentOpenNode.parent = parentNode;
-                    currentOpenNode.gCost = newCost;
-                    currentOpenNode.CalculateFCost(0);
+                    currentOpenNode.gCost = parentNode.gCost + connection.Cost;
+                    currentOpenNode.fCost = newCost;
+                    currentOpenNode.hCost = newCost - currentOpenNode.gCost;
                 }
                 newNodeRecord = currentOpenNode;
             }
             else {
-                newNodeRecord.gCost = newCost;
-                newNodeRecord.CalculateFCost(0);
+                newNodeRecord.gCost = parentNode.gCost + connection.Cost;
+                newNodeRecord.fCost = newCost;
+                newNodeRecord.hCost = newCost - newNodeRecord.gCost;
                 newNodeRecord.parent = parentNode;
                 Open.Add(newNodeRecord);    
             }
