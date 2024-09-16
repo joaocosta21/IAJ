@@ -11,11 +11,10 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.Heuristics
     {
         public float H(Node node, Node goalNode)
         {
-            // TODO implement
-
-            throw new NotImplementedException();
-
-
+            
+            float X = node.x - goalNode.x;
+            float Y = node.y - goalNode.y;
+            return (float) Math.Sqrt(X*X + Y*Y); 
 
         }
     }
