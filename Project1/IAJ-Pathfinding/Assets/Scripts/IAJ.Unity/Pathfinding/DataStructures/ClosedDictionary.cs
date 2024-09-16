@@ -20,41 +20,45 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
 
         public void Initialize()
         {
-            //TODO implement
-            throw new NotImplementedException();
+            this.Closed.Clear();
         }
 
         public void Add(NodeRecord nodeRecord)
         {
-            //TODO implement
-            throw new NotImplementedException();
+            Vector2 position = new Vector2(nodeRecord.Node.x, nodeRecord.Node.y);
+            if (!Closed.ContainsKey(position)) // Only add if not already present
+            {
+                Closed.Add(position, nodeRecord);
+            }
         }
 
         public void Remove(NodeRecord nodeRecord)
         {
-            //TODO implement
-            throw new NotImplementedException();
+            Vector2 position = new Vector2(nodeRecord.Node.x, nodeRecord.Node.y);
+            if (Closed.ContainsKey(position)) 
+            {
+                Closed.Remove(position);
+            }
         }
 
         public NodeRecord Find(NodeRecord nodeRecord)
         {
-            //TODO implement
-            throw new NotImplementedException();
+            Vector2 position = new Vector2(nodeRecord.Node.x, nodeRecord.Node.y);
+            if (Closed.TryGetValue(position, out NodeRecord foundNodeRecord)) 
+            {
+                return foundNodeRecord;
+            }
+            return null;
         }
 
         public ICollection<NodeRecord> All()
         {
-            //TODO implement
-            throw new NotImplementedException();
+            return Closed.Values;
         }
         public void Clear()
         {
-            //TODO implement
-            throw new NotImplementedException();
+            Closed.Clear();
         }
-
-
     }
-
 }
 

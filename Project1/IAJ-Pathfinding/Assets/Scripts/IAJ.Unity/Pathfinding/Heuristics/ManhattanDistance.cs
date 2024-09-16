@@ -11,12 +11,9 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.Heuristics
     {
         public float H(Node node, Node goalNode)
         {
-            // TODO implement
-
-             // Calculate Manhattan distance
-
-            throw new NotImplementedException();
-
+            float dx = Mathf.Abs(node.x - goalNode.x);
+            float dy = Mathf.Abs(node.y - goalNode.y);
+            return dx + dy;
         }
     }
 }

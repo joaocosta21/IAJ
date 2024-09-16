@@ -86,7 +86,7 @@ public class PathfindingManager : MonoBehaviour
     public AStarType aStarType = AStarType.NodeArrayGoalBounding;
     public Heuristics heuristics = Heuristics.EuclideanDistance;
     public OpenSetType openSetType = OpenSetType.SimpleUnordered;
-    public ClosedSetType closedSetType = ClosedSetType.SimpleUnordered;
+    public ClosedSetType closedSetType = ClosedSetType.Dictionary;
 
     //Grid configuration
     public GridGraph gridGraph;
@@ -112,10 +112,15 @@ public class PathfindingManager : MonoBehaviour
 
     private void Start()
     {
+        this.heuristics = Heuristics.ManhattanDistance;
+        this.closedSetType = ClosedSetType.Dictionary;
+        this.openSetType = OpenSetType.PriorityHeap;
+
         // Finding reference of Visual Grid Manager
         visualGrid = GameObject.FindObjectOfType<VisualGridManager>();
 
         // Creating the Path for the Grid, reading the file and Creating it
+        gridName = GridType.giantGrid;
         var gridPath = "Assets/Resources/Grid/" + gridName + ".txt";
         this.LoadGrid(gridPath);
 
@@ -149,6 +154,7 @@ public class PathfindingManager : MonoBehaviour
         {
             case AStarType.Vanilla:
                 IOpenSet openSet;
+                Debug.Log(openSetType);
                 switch (this.openSetType)
                 {
                     case OpenSetType.SimpleUnordered:
@@ -160,7 +166,6 @@ public class PathfindingManager : MonoBehaviour
                     default:
                         throw new Exception();
                 }
-
                 IClosedSet closedSet;
                 switch (this.closedSetType)
                 {
