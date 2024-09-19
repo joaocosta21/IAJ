@@ -1,0 +1,7 @@
+.json
+.unity
+.csproj
+.pid
+Logs/*
+Packages/*
+UserSettings/*
