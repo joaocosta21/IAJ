@@ -131,9 +131,9 @@
 
                     //Add the current node to the Closed list
                     Closed.Add(currentNode);
+                    currentNode.Node.status = VisualNodeStatus.Closed;
                     AddToClosedCalls++;
                     NodesSearched++;
-
                     //Process the node's connections 
                     foreach (Connection connection in gridGraph.GetConnections(currentNode.Node))
                     {
@@ -154,9 +154,9 @@
                         return true;
                     }
 
-                    if (ProcessedNodesPerFrame >= this.NodesPerSearch)
+                    if (ProcessedNodesPerFrame >= this.NodesPerSearch && returnPartialSolution)
                     {
-                        solution = null;
+                        solution = CalculatePath(currentNode);
                         return false; // Search not finished, can continue in the next frame
                     }
                 }
@@ -199,6 +199,7 @@
                 {
                     // The child node is not in the open set, so add it
                     Open.Add(childNodeRecord);
+                    childNodeRecord.Node.status = VisualNodeStatus.Open;
                     AddToOpenCalls++;
                 }
                 else if (newGCost < openNode.gCost)
