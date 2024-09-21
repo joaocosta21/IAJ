@@ -22,5 +22,7 @@ namespace Assets.Scripts.Grid
         public float GetCost(Node fromNode, Node toNode);
 
         public Node GetNode(int x, int y);
+
+        List<Node> AllNodes();  // Return a list of all nodes in the graph
     }
 }

@@ -175,7 +175,7 @@ public class PathfindingManager : MonoBehaviour
                 this.pathfinding = new AStarPathfinding(gridGraph, openSet, closedSet, heuristics, tieBreakingWeight);
                 break;
             case AStarType.NodeArray:
-                //this.pathfinding = new NodeArrayAStarPathfinding(heuristics, tieBreakingWeight);
+                this.pathfinding = new NodeArrayAStarPathfinding(gridGraph, heuristics);
                 break;
             case AStarType.NodeArrayGoalBounding:
                 //this.pathfinding = new GoalBoundAStarPathfinding(heuristics, tieBreakingWeight);
@@ -255,7 +255,7 @@ public class PathfindingManager : MonoBehaviour
 
         // Make sure you tell the pathfinding algorithm to keep searching
         if (this.pathfinding.InProgress)
-        {
+        {   
             
             var finished = this.pathfinding.Search(out this.solution, partialPath);
             if (finished)
@@ -265,7 +265,6 @@ public class PathfindingManager : MonoBehaviour
             }
             else if (partialPath){
                 this.visualGrid.DrawPartialPath(this.solution);
-                 
             }
             // Debug.Log(pathfinding.AddToOpenCalls+" open");
 
@@ -330,7 +329,6 @@ public class PathfindingManager : MonoBehaviour
         this.visualGrid.SetObjectColor(startingX, startingY, Color.cyan);
         this.visualGrid.SetObjectColor(goalX, goalY, Color.green);
         this.pathfinding.InitializePathfindingSearch(_startingX, _startingY, _goalX, _goalY);
-
     }
 
     // Reads the text file that where the grid "definition" is stored, I don't recomend changing this ^^ 

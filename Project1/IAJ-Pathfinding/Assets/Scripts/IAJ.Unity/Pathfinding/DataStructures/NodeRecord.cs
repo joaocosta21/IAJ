@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
 {
-    public enum NodeStatus
+    public enum NodeCategory
     {
         Unvisited,
         Open,
@@ -18,23 +18,22 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
     {
         //Node
         public Node Node { get; private set; }
-        
 
         //A* Stuff
         public NodeRecord parent;
         public float gCost;
         public float hCost;
         public float fCost;
-        
+        public NodeCategory Category;  // Category: Unvisited, Open, Closed
 
         public NodeRecord(Node node)
         {
-            
             this.Node = node;
             gCost = int.MaxValue;
             hCost = 0;
             fCost = gCost + hCost;
             parent = null;
+            this.Category = NodeCategory.Unvisited;
         }
 
         public void CalculateFCost(float tieBreakingWeight)
@@ -61,6 +60,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
         // I wonder where this might be useful...
         public void Reset()
         {
+            this.Node = this.Node;
             gCost = int.MaxValue;
             hCost = 0;
             fCost = gCost + hCost;

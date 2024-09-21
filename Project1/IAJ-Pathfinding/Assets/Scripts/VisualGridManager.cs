@@ -153,7 +153,6 @@ public class VisualGridManager : MonoBehaviour
                     this.SetObjectColor(x, y, openNodesColor);
                 else if (node.status == VisualNodeStatus.Closed)
                     this.SetObjectColor(x, y, closedNodesColor);
-
             }
     }
 

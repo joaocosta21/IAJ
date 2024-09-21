@@ -1,114 +1,115 @@
-﻿/*using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿    using System.Collections.Generic;
+    using Assets.Scripts.Grid;
+    using Assets.Scripts.IAJ.Unity.Pathfinding.Heuristics;
+    using UnityEngine;
+    using Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures;
+    using System.Runtime.CompilerServices;
+    using System;
+    using UnityEditor.Experimental.GraphView;
+    using Node = Assets.Scripts.Grid.Node;
+    using UnityEditor.MemoryProfiler;
+    using Connection = Assets.Scripts.Grid.Connection;
 
-namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
-{
-    public class NodeRecordArray : IOpenSet, IClosedSet
+    namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
     {
-        private NodeRecord[] NodeRecords { get; set; }
-        private NodePriorityHeap Open { get; set; }
-
-        public NodeRecordArray(List<NodeRecord> nodes)
+        public class NodeRecordArray : IOpenSet, IClosedSet
         {
-            //this method creates and initializes the NodeRecordArray for all nodes in the Navigation Graph
-            this.NodeRecords = new NodeRecord[nodes.Count];
-            
-            for(int i = 0; i < nodes.Count; i++)
+            private NodeRecord[] NodeRecords { get; set; }
+            private NodePriorityHeap openHeap { get; set; }
+
+            public NodeRecordArray(List<Node> nodes)
             {
-                this.NodeRecords[i] = new NodeRecord(nodes[i].x, nodes[i].y) {index = i };
+                var totalNodes = nodes.Count;
+                NodeRecords = new NodeRecord[totalNodes];
+                for (int i = 0; i < totalNodes; i++)
+                {
+                    if (NodeRecords[i] == null)
+                    {
+                        nodes[i].Index = i;
+                        NodeRecords[i] = new NodeRecord(nodes[i]);
+                    }
+                    NodeRecords[i].Reset();
+                }
+                this.openHeap = new NodePriorityHeap();
             }
 
-            this.Open = new NodePriorityHeap();
-        }
-
-        public NodeRecord GetNodeRecord(NodeRecord node)
-        {
-            return NodeRecords[node.index];
-        }
-
-        void IOpenSet.Initialize()
-        {
-            this.Open.Initialize();
-            //we want this to be very efficient (that's why we use for)
-            for (int i = 0; i < this.NodeRecords.Length; i++)
+            // OpenSet Methods
+            void IOpenSet.Clear()
             {
-                if(NodeRecords[i].isWalkable)
-                this.NodeRecords[i].status = NodeStatus.Unvisited;
+                this.openHeap.Clear();
+                for (int i = 0; i < this.NodeRecords.Length; i++)
+                {
+                    if(NodeRecords[i].Node.isWalkable)
+                        this.NodeRecords[i].Category = NodeCategory.Unvisited;
+                }
             }
 
-        }
+            void IClosedSet.Clear()
+            {
+                return;
+            }
 
-        void IClosedSet.Initialize()
-        {
-        
-        }
+            public NodeRecord GetNodeRecordByIndex(int index)
+            {
+                return NodeRecords[index];
+            }
 
-        public void IOpenSet.Add(NodeRecord nodeRecord)
-        {
-            this.Open.AddToOpen(nodeRecord);
-            nodeRecord.status = NodeStatus.Open;
-        }
+            void IOpenSet.Add(NodeRecord nodeRecord)
+            {
+                nodeRecord.Category = NodeCategory.Open;
+                openHeap.Add(nodeRecord);
+            }
 
-        public void IClosedSet.Add(NodeRecord nodeRecord)
-        {
-            // TODO implement
-            throw new NotImplementedException();
-        }
+            public NodeRecord GetBestAndRemove()
+            {
+                var bestNode = openHeap.GetBestAndRemove();
+                bestNode.Category = NodeCategory.Closed;
+                return bestNode;
+            }
 
-        public NodeRecord IOpenSet.Find(NodeRecord nodeRecord)
-        {
-            //TODO implement
-            throw new NotImplementedException();
-        }
+            NodeRecord IOpenSet.Find(NodeRecord nodeRecord)
+            {   
+                return GetNodeRecordByIndex(nodeRecord.Node.Index);
+            }
 
-        public NodeRecord IClosedSet.Find(NodeRecord nodeRecord)
-        {
-            //TODO implement
-            throw new NotImplementedException();
-        }
+            public void Replace(NodeRecord nodeToBeReplaced, NodeRecord nodeToReplace)
+            {
+                openHeap.Replace(nodeToBeReplaced, nodeToReplace);
+            }
 
-        public NodeRecord GetBestAndRemove()
-        {
-            return this.Open.GetBestAndRemove();
-        }
+            public int CountOpen()
+            {
+                return openHeap.CountOpen();
+            }
 
-        public NodeRecord PeekBest()
-        {
-            return this.Open.PeekBest();
-        }
+            void IClosedSet.Add(NodeRecord nodeRecord)
+            {
+                nodeRecord.Category = NodeCategory.Closed;
+            }
 
-        public void Replace(NodeRecord nodeToBeReplaced, NodeRecord nodeToReplace)
-        {
-            this.Open.Replace(nodeToBeReplaced, nodeToReplace);
-        }
+            NodeRecord IClosedSet.Find(NodeRecord nodeRecord)
+            {
+                return nodeRecord.Category == NodeCategory.Closed ? nodeRecord : null;
+            }
 
-        public void IOpenSet.Remove(NodeRecord nodeRecord)
-        {
-            this.Open.RemoveFromOpen(nodeRecord);
-            nodeRecord.status = NodeStatus.Unvisited;
-        }
+            public NodeRecord PeekBest()
+            {
+                return openHeap.PeekBest();  // Assuming openHeap is a priority queue that stores NodeRecords
+            }
 
-        public void IClosedSet.Remove(NodeRecord nodeRecord)
-        {
-            //TODO implement
-            throw new NotImplementedException();
-        }
+            public void Remove(NodeRecord nodeRecord)
+            {
+                openHeap.Remove(nodeRecord);  // Assuming openHeap has a remove method
+            }
 
-        ICollection<NodeRecord> IOpenSet.All()
-        {
-            return this.Open.All();
-        }
+            ICollection<NodeRecord> IOpenSet.All()
+            {
+                return openHeap.All();  // Assuming openHeap can return all nodes
+            }
 
-        ICollection<NodeRecord> IClosedSet.All()
-        {
-            return this.NodeRecords.Where(node => node.status == NodeStatus.Closed).ToList();
-        }
-
-        public int CountOpen()
-        {
-            return this.Open.CountOpen();
+            ICollection<NodeRecord> IClosedSet.All()
+            {
+                return null;  // ClosedSet is not needed for this implementation
+            }
         }
     }
-}
-*/

@@ -98,12 +98,9 @@ namespace Assets.Scripts.Grid
 
         public Node GetNode(int x, int y) {  return grid[x, y]; }
         //GetGridObject(GoalPositionX, GoalPositionY);
-
-
-
-
-
-
-
+        public List<Node> AllNodes()
+        {
+            return grid.GetAll();
+        }
     }
 }

@@ -1,42 +1,62 @@
-﻿/*using Assets.Scripts.IAJ.Unity.Pathfinding.Heuristics;
+﻿using Assets.Scripts.IAJ.Unity.Pathfinding.Heuristics;
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts.Grid;
 using Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures;
 using System.Runtime.CompilerServices;
+using System;
+using UnityEditor.Experimental.GraphView;
+using Node = Assets.Scripts.Grid.Node;
+using UnityEditor.MemoryProfiler;
+using Connection = Assets.Scripts.Grid.Connection;
 
 namespace Assets.Scripts.IAJ.Unity.Pathfinding
 {
     public class NodeArrayAStarPathfinding : AStarPathfinding
     {
-        private static int index = 0;
-        protected NodeRecordArray NodeRecordArray { get; set; }
+        private NodeRecordArray nodeRecordArray;
+        PathfindingManager pathfindingManager;
 
-        public NodeArrayAStarPathfinding(IHeuristic heuristic) : base(null, null, heuristic)
+        public NodeArrayAStarPathfinding(IGraph grid, IHeuristic heuristic)
+            : base(grid, null, null, heuristic)
         {
-            grid = new Grid<NodeRecord>((Grid<NodeRecord> global, int x, int y) => new NodeRecord(x, y, index++));
-            this.InProgress = false;
-            this.Heuristic = heuristic;
-            this.NodesPerSearch = uint.MaxValue;
-            this.NodeRecordArray = new NodeRecordArray(grid.getAll());
-            this.Open = this.NodeRecordArray;
-            this.Closed = this.NodeRecordArray;
-
+            this.nodeRecordArray = new NodeRecordArray(grid.AllNodes());
+            this.Open = this.nodeRecordArray;
+            this.Closed = this.nodeRecordArray;
+            this.pathfindingManager = GameObject.FindObjectOfType<PathfindingManager>(); 
         }
-       
-        // In Node Array A* the only thing that changes is how you process the child node, the search occurs the exact same way so you can the parent's method
-        protected override void ProcessChildNode(NodeRecord parentNode, NodeRecord neighbourNode)
+
+        protected override void ProcessChildNode(NodeRecord parentNode, Connection connection)
         {
-            // TODO implement
-            float F;
-            float G;
-            float H;
+            Node childNode = connection.ToNode;
+            float newGCost = parentNode.gCost + connection.Cost;
 
+            // Access the child node's record directly from the NodeRecordArray using the node's index
+            NodeRecord childNodeRecord = nodeRecordArray.GetNodeRecordByIndex(childNode.Index);
+
+            if (childNodeRecord.Category == NodeCategory.Closed)
+            {
+                return; // Skip if it's in the closed set
+            }
+
+            if (childNodeRecord.Category == NodeCategory.Unvisited || newGCost < childNodeRecord.gCost)
+            {
+                // Update the gCost (gCost), parent, and FValue
+                childNodeRecord.gCost = newGCost;
+                childNodeRecord.hCost = this.Heuristic.H(childNode, this.GoalNode) * this.HeuristicMultiplier;
+                childNodeRecord.parent = parentNode;
+                childNodeRecord.CalculateFCost(TieBreakingWeight);
+                
+                if (childNodeRecord.Category == NodeCategory.Unvisited)
+                {
+                    ((IOpenSet)nodeRecordArray).Add(childNodeRecord); // Add to open set
+                }
+                else
+                {
+                    nodeRecordArray.Replace(childNodeRecord, childNodeRecord); // Update in open set
+                }
+            }
+            pathfindingManager.gridGraph.grid.SetGridObject(childNode.x, childNode.y, childNode);
         }
-               
     }
-
-
-       
 }
-*/

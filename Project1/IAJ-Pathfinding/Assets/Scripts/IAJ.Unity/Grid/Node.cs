@@ -19,6 +19,7 @@ namespace Assets.Scripts.Grid
         //private Grid<Node> grid;
         public int x;
         public int y;
+        public int Index { get; set; }
         // Only for visualization purposes. Do NOT use in your algorithms
         public VisualNodeStatus status;
 
@@ -31,6 +32,7 @@ namespace Assets.Scripts.Grid
             this.y = y;
             isWalkable = true;
             status = VisualNodeStatus.Unvisited;
+            this.Index = 0;
         }
 
         public override string ToString()
