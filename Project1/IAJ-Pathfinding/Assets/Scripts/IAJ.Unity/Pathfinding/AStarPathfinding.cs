@@ -57,7 +57,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             this.InProgress = false;
             this.Heuristic = heuristic;
             this.NodesPerSearch = 20; //by default we process all nodes in a single request, but you should change this
-            this.TieBreakingWeight = tieBreakingWeight;
+            this.TieBreakingWeight = 2.0f;
             this.HeuristicMultiplier = 1.5f;
         }
         public virtual void Preprocess()
@@ -106,7 +106,10 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             while (Open.CountOpen() > 0)
             {
                 currentNode = Open.GetBestAndRemove();
-
+                if(Open.CountOpen() > MaxOpenNodes)
+                {
+                    MaxOpenNodes = Open.CountOpen();
+                }
                 foreach (Connection connection in gridGraph.GetConnections(currentNode.Node))
                 {
                     this.TotalProcessedNodes++;
@@ -117,8 +120,11 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                         solution = CalculatePath(foundNode);
                         return true;
                     }
-                    else if(ProcessedNodesPerFrame == 300 && returnPartialSolution){
-                        solution = CalculatePath(foundNode);
+                    else if(ProcessedNodesPerFrame == 30){
+                        solution = null;
+                        if (returnPartialSolution) { 
+                            solution = CalculatePath(foundNode); 
+                        }
                         return false;
                     }
                 }
