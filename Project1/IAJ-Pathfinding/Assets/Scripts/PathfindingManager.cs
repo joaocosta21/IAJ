@@ -175,7 +175,7 @@ public class PathfindingManager : MonoBehaviour
                 this.pathfinding = new AStarPathfinding(gridGraph, openSet, closedSet, heuristics, tieBreakingWeight);
                 break;
             case AStarType.NodeArray:
-                this.pathfinding = new NodeArrayAStarPathfinding(gridGraph, heuristics);
+                this.pathfinding = new NodeArrayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
                 break;
             case AStarType.NodeArrayGoalBounding:
                 //this.pathfinding = new GoalBoundAStarPathfinding(heuristics, tieBreakingWeight);

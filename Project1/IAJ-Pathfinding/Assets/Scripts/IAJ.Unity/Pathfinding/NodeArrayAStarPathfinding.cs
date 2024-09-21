@@ -17,13 +17,14 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
         private NodeRecordArray nodeRecordArray;
         PathfindingManager pathfindingManager;
 
-        public NodeArrayAStarPathfinding(IGraph grid, IHeuristic heuristic)
+        public NodeArrayAStarPathfinding(IGraph grid, IHeuristic heuristic, float tieBreakingWeight = 0.0f)
             : base(grid, null, null, heuristic)
         {
             this.nodeRecordArray = new NodeRecordArray(grid.AllNodes());
             this.Open = this.nodeRecordArray;
             this.Closed = this.nodeRecordArray;
             this.pathfindingManager = GameObject.FindObjectOfType<PathfindingManager>(); 
+            base.TieBreakingWeight = tieBreakingWeight;
         }
 
         protected override void ProcessChildNode(NodeRecord parentNode, Connection connection)
@@ -45,6 +46,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 childNodeRecord.gCost = newGCost;
                 childNodeRecord.hCost = this.Heuristic.H(childNode, this.GoalNode) * this.HeuristicMultiplier;
                 childNodeRecord.parent = parentNode;
+                Debug.Log(TieBreakingWeight);
                 childNodeRecord.CalculateFCost(TieBreakingWeight);
                 
                 if (childNodeRecord.Category == NodeCategory.Unvisited)

@@ -23,11 +23,8 @@
                 NodeRecords = new NodeRecord[totalNodes];
                 for (int i = 0; i < totalNodes; i++)
                 {
-                    if (NodeRecords[i] == null)
-                    {
-                        nodes[i].Index = i;
-                        NodeRecords[i] = new NodeRecord(nodes[i]);
-                    }
+                    nodes[i].Index = i;
+                    NodeRecords[i] = new NodeRecord(nodes[i]);
                     NodeRecords[i].Reset();
                 }
                 this.openHeap = new NodePriorityHeap();

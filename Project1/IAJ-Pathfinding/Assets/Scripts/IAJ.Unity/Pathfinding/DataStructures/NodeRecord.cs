@@ -38,8 +38,8 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
 
         public void CalculateFCost(float tieBreakingWeight)
         {
-            //ToDo Implement tieBreaking here
-            fCost = gCost + hCost;
+            // Implement tie-breaking by adding a small multiple of the heuristic (hCost)
+            fCost = gCost + hCost + (tieBreakingWeight * hCost);
         }
 
         public int CompareTo(NodeRecord other)
