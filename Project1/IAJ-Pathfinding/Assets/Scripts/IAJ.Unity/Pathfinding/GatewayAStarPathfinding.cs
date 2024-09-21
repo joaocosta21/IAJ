@@ -90,9 +90,9 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 // Fill the current row to the right
                 while (xRight < gridGraph.grid.Width && gridGraph.GetNode(xRight, current.y).isWalkable && zones[xRight, current.y] == 0)
                 {
+
                     if (current.y < gridGraph.grid.Height - 1) // Check below
                     {
-                        Debug.Log($"Checking node at ({xRight}, {current.y + 1})");
                         Node below = gridGraph.GetNode(xRight, current.y + 1);
                         if (below.isWalkable && zones[below.x, below.y] == 0)
                         {
@@ -100,8 +100,6 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                         } else {
                             zones[xRight, current.y] = zoneID;
                         }
-                    } else {
-                        zones[xRight, current.y] = zoneID;
                     }
                     xRight++;
                 }
@@ -109,6 +107,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 // Fill the current row to the left
                 while (xLeft >= 0 && gridGraph.GetNode(xLeft, current.y).isWalkable && zones[xLeft, current.y] == 0)
                 {
+                    zones[xLeft, current.y] = zoneID;
 
                     // Check for connections to top and bottom and add them to the queue
 
@@ -118,8 +117,6 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                         if (below.isWalkable && zones[below.x, below.y] == 0)
                         {
                             openSet.Enqueue(below); // Add to flood fill
-                        } else {
-                            zones[xLeft, current.y] = zoneID;
                         }
                     }
 
