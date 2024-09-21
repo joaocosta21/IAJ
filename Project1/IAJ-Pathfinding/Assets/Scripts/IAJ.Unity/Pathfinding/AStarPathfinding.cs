@@ -112,18 +112,19 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                     this.TotalProcessedNodes++;
                     ProcessedNodesPerFrame++;
                     foundNode = ProcessChildNode(currentNode, connection);
-                    if (foundNode != null)
+                    if (foundNode.Equals(GoalNode))
                     {
                         solution = CalculatePath(foundNode);
                         return true;
                     }
-                    /*else if(ProcessedNodesPerFrame == 300){
-                        solution = null;
+                    else if(ProcessedNodesPerFrame == 300 && returnPartialSolution){
+                        solution = CalculatePath(foundNode);
                         return false;
-                    }*/
+                    }
                 }
 
                 Closed.Add(currentNode);
+                currentNode.Node.status = VisualNodeStatus.Closed;
             }
 
             //Out of nodes on the openList
@@ -181,14 +182,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
 
             // Finally don't forget to update the actual Grid value:
             pathfindingManager.gridGraph.grid.SetGridObject(node.x, node.y, node);
-            if (connection.ToNode.Equals(GoalNode))
-            {
-                return newNodeRecord;
-            }
-            else
-            {
-                return null;
-            }
+            return newNodeRecord;
         }
 
 
