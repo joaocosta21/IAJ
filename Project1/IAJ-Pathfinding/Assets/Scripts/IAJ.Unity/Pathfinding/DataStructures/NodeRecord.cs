@@ -38,7 +38,6 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
 
         public void CalculateFCost(float tieBreakingWeight)
         {
-            // Implement tie-breaking by adding a small multiple of the heuristic (hCost)
             fCost = gCost + hCost + (tieBreakingWeight * hCost);
         }
 

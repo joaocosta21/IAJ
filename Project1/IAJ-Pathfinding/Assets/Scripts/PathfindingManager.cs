@@ -177,8 +177,8 @@ public class PathfindingManager : MonoBehaviour
             case AStarType.NodeArray:
                 this.pathfinding = new NodeArrayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
                 break;
-            case AStarType.NodeArrayGoalBounding:
-                //this.pathfinding = new GoalBoundAStarPathfinding(heuristics, tieBreakingWeight);
+            case AStarType.GatewayAstar:
+                this.pathfinding = new GatewayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
                 break;
             default:
                 break;
@@ -256,7 +256,6 @@ public class PathfindingManager : MonoBehaviour
         // Make sure you tell the pathfinding algorithm to keep searching
         if (this.pathfinding.InProgress)
         {   
-            
             var finished = this.pathfinding.Search(out this.solution, partialPath);
             if (finished)
             {

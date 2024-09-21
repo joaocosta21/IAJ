@@ -54,7 +54,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
         public AStarPathfinding(IGraph grid, IOpenSet open, IClosedSet closed, IHeuristic heuristic, float tieBreakingWeight = 0.0f)
         {
             this.pathfindingManager = GameObject.FindObjectOfType<PathfindingManager>(); 
-            this.gridGraph = grid;  
+            this.gridGraph = grid;
             this.Open = open;
             this.Closed = closed;
             this.InProgress = false;

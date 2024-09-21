@@ -21,7 +21,7 @@ namespace Assets.Scripts.Grid
         protected const float MOVE_STRAIGHT_COST = 1;
         protected const float MOVE_DIAGONAL_COST = 1.5f;
 
-        public Grid<Node> grid;
+        public Grid<Node> grid { get; set; }
 
         public GridGraph(NeighbourhoodType neighbourhoodType)
         {

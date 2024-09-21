@@ -12,7 +12,7 @@ namespace Assets.Scripts.Grid
     public interface IGraph
 
     {
-        //Grid<Node> grid { get; set; }
+        Grid<Node> grid { get; set; }
 
         // An array of connections outgoing from the given node
         List<Connection> GetConnections(Node FromNode);
