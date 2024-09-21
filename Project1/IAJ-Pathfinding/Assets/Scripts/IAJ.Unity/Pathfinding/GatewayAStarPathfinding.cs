@@ -56,7 +56,6 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 {
                     Node node = gridGraph.GetNode(x, y);
 
-                    Debug.Log($"Processing node {zones[x, y]} at ({x}, {y})");
                     if (!node.isWalkable || zones[x, y] != 0) continue;
 
                     // Start flood-fill for a new zone
@@ -64,35 +63,78 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                     currentZoneID++;
                 }
             }
+            for (int x = 0; x < gridGraph.grid.Width; x++)
+            {
+                for (int y = 0; y < gridGraph.grid.Height; y++)
+                {
+                    Debug.Log($"Processing node {zones[x, y]} at ({x}, {y})");
+                }
+            }
             Debug.Log($"Decomposed map into {zones} zones");
         }
 
         private void FloodFill(Node startNode, int zoneID)
         {
-            Queue<Node> openSet = new Queue<Node>();
-            openSet.Enqueue(startNode);
+            Queue<(int xLeft, int y)> openSet = new Queue<(int xLeft, int y)>();
+            openSet.Enqueue((startNode.x, startNode.y));
+
+            bool shrunkL = false, shrunkR = false;
 
             while (openSet.Count > 0)
             {
-                Node current = openSet.Dequeue();
+                (int xLeft, int y) = openSet.Dequeue();
 
-                if (zones[current.x, current.y] != 0) continue;
+                // Ensure y is within bounds (avoid accessing negative y values)
+                if (y < 0 || y >= gridGraph.grid.Height) continue;
 
-                zones[current.x, current.y] = zoneID;
-
-                foreach (var connection in gridGraph.GetConnections(current))
+                // Go right until a wall or open upward space is encountered
+                int x = xLeft;
+                while (x < gridGraph.grid.Width && gridGraph.GetNode(x, y).isWalkable && zones[x, y] == 0 && 
+                    (y == 0 || !gridGraph.GetNode(x, y - 1).isWalkable)) // Ensure y-1 is valid (upward check)
                 {
-                    Node neighbor = connection.ToNode;
+                    zones[x, y] = zoneID;
+                    x++;
+                }
+                int xRight = x - 1; // Store the farthest right point we've reached
 
-                    if (neighbor.isWalkable && zones[neighbor.x, neighbor.y] == 0)
+                // Handle the shrinking on the right border (check if y - 1 is within bounds)
+                if (y > 0 && x < gridGraph.grid.Width && gridGraph.GetNode(x, y - 1).isWalkable && zones[x, y - 1] == zoneID)
+                {
+                    shrunkR = true;
+                }
+                else if (shrunkR && gridGraph.GetNode(xRight, y - 1).isWalkable && zones[xRight, y - 1] != zoneID)
+                {
+                    // Undo the fill for this row if right shrunk
+                    while (xRight >= xLeft)
                     {
-                        if ((neighbor.x > current.x && zones[neighbor.x - 1, current.y] != zoneID) ||
-                            (neighbor.x < current.x && zones[neighbor.x + 1, current.y] != zoneID))
-                        {
-                            break;
-                        }
-                        openSet.Enqueue(neighbor);
+                        zones[xRight, y] = 0;
+                        xRight--;
                     }
+                    continue;
+                }
+
+                // Move to the next row (y + 1)
+                int nextY = y + 1;
+                if (nextY < gridGraph.grid.Height)
+                {
+                    // Find the new left boundary
+                    while (xLeft < gridGraph.grid.Width && (!gridGraph.GetNode(xLeft, nextY).isWalkable || zones[xLeft, nextY - 1] != zoneID))
+                    {
+                        xLeft++;
+                    }
+
+                    // Handle left border shrinking (check if y - 1 is within bounds)
+                    if (xLeft > 0 && y > 0 && gridGraph.GetNode(xLeft - 1, nextY - 1).isWalkable && zones[xLeft - 1, nextY - 1] == zoneID)
+                    {
+                        shrunkL = true;
+                    }
+                    else if (shrunkL && y > 0 && gridGraph.GetNode(xLeft, nextY - 1).isWalkable && zones[xLeft, nextY - 1] != zoneID)
+                    {
+                        // Stop further filling if the left side is shrinking
+                        continue;
+                    }
+
+                    openSet.Enqueue((xLeft, nextY));
                 }
             }
         }
