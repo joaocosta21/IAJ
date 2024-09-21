@@ -27,7 +27,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             base.TieBreakingWeight = tieBreakingWeight;
         }
 
-        protected override void ProcessChildNode(NodeRecord parentNode, Connection connection)
+        protected override NodeRecord ProcessChildNode(NodeRecord parentNode, Connection connection)
         {
             Node childNode = connection.ToNode;
             float newGCost = parentNode.gCost + connection.Cost;
@@ -37,7 +37,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
 
             if (childNodeRecord.Category == NodeCategory.Closed)
             {
-                return; // Skip if it's in the closed set
+                return null; // Skip if it's in the closed set
             }
 
             if (childNodeRecord.Category == NodeCategory.Unvisited || newGCost < childNodeRecord.gCost)
@@ -59,6 +59,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 }
             }
             pathfindingManager.gridGraph.grid.SetGridObject(childNode.x, childNode.y, childNode);
+            return null;
         }
     }
 }

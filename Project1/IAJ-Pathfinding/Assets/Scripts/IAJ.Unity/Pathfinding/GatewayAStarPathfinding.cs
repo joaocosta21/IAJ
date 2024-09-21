@@ -174,7 +174,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             return base.Search(out solution, returnPartialSolution);
         }
 
-        protected override void ProcessChildNode(NodeRecord parentNode, Connection connection)
+        protected override NodeRecord ProcessChildNode(NodeRecord parentNode, Connection connection)
         {
             Node childNode = connection.ToNode;
 
@@ -198,7 +198,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
 
             // Handle open and closed set logic as in regular A*
             NodeRecord closedNode = this.Closed.Find(childNodeRecord);
-            if (closedNode != null) return;
+            if (closedNode != null) return null;
 
             NodeRecord openNode = Open.Find(childNodeRecord);
             if (openNode == null)
@@ -212,6 +212,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 openNode.CalculateFCost(TieBreakingWeight);
                 Open.Replace(openNode, childNodeRecord);
             }
+            return null;
         }
 
         // Finds the nearest gateway to a given node
