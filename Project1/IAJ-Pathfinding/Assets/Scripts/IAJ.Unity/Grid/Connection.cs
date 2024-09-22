@@ -16,7 +16,7 @@ namespace Assets.Scripts.Grid
         {
             FromNode = fromNode;
             ToNode = toNode;
-            Cost = Math.Max(0, cost); // Ensure cost is non-negative
+            Cost = Math.Max(0, cost);
         }
 
         public float GetCost()

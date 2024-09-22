@@ -10,7 +10,6 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
     class ClosedDictionary : IClosedSet
     {
 
-        //Tentative dictionary type structure, it is possible that there are better solutions...
         private Dictionary<Vector2, NodeRecord> Closed { get; set; }
 
         public ClosedDictionary()
@@ -26,7 +25,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures
         public void Add(NodeRecord nodeRecord)
         {
             Vector2 position = new Vector2(nodeRecord.Node.x, nodeRecord.Node.y);
-            if (!Closed.ContainsKey(position)) // Only add if not already present
+            if (!Closed.ContainsKey(position)) 
             {
                 Closed.Add(position, nodeRecord);
             }

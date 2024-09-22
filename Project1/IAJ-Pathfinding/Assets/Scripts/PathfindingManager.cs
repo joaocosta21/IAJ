@@ -75,7 +75,9 @@ public class PathfindingManager : MonoBehaviour
     {
         ZeroHeuristic,
         EuclideanDistance,
-        ManhattanDistance
+        ManhattanDistance,
+        
+        WeightedManhattanHeuristic
     }
 
     [Header("Pahfinding Settings")]
@@ -83,13 +85,14 @@ public class PathfindingManager : MonoBehaviour
     //public properties useful for testing, you can add other booleans here such as which heuristic to use
     public bool partialPath = false;
     public bool tieBreaking = true;
-    public AStarType aStarType = AStarType.NodeArrayGoalBounding;
+    public AStarType aStarType = AStarType.GatewayAstar;
     public Heuristics heuristics = Heuristics.EuclideanDistance;
     public OpenSetType openSetType = OpenSetType.SimpleUnordered;
     public ClosedSetType closedSetType = ClosedSetType.Dictionary;
 
     //Grid configuration
     public GridGraph gridGraph;
+
     public static int width;
     public static int height;
     public static float cellSize;
@@ -126,7 +129,7 @@ public class PathfindingManager : MonoBehaviour
 
         // SELECT VARIATION
 
-        float tieBreakingWeight = tieBreaking ? 0.0001f : 0f;
+        float tieBreakingWeight = tieBreaking ? 0.5f : 0f;
 
         IHeuristic heuristics;
         switch(this.heuristics)
@@ -139,6 +142,9 @@ public class PathfindingManager : MonoBehaviour
                 break;
             case Heuristics.ManhattanDistance:
                 heuristics = new ManhattanDistance();
+                break;
+            case Heuristics.WeightedManhattanHeuristic:
+                heuristics = new WeightedManhattanHeuristic();
                 break;
             default:
                 throw new Exception();
@@ -178,7 +184,7 @@ public class PathfindingManager : MonoBehaviour
                 this.pathfinding = new NodeArrayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
                 break;
             case AStarType.GatewayAstar:
-                this.pathfinding = new GatewayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
+                // this.pathfinding = new GatewayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
                 break;
             default:
                 break;

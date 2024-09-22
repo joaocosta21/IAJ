@@ -29,11 +29,10 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
         public int GoalPositionX { get; set; }
         public int GoalPositionY { get; set; }
         protected float TieBreakingWeight;
-        protected float HeuristicMultiplier;
-
 
         // variables for analysis purposes
         public uint NodesPerSearch { get; set; }
+        public uint NodesSearched { get; set; }
         public uint TotalProcessedNodes { get; protected set; }
         public int MaxOpenNodes { get; protected set; }
         public float TotalProcessingTime { get; set; }
@@ -46,19 +45,22 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
         public int AddToClosedCalls { get; set; } = 0;
         public int SearchInClosedCalls { get; set; } = 0;
         public int RemoveFromClosedCalls { get; set; } = 0;
+        public int MaxNodes { get; set; } = 0;
 
 
         public AStarPathfinding(IGraph grid, IOpenSet open, IClosedSet closed, IHeuristic heuristic, float tieBreakingWeight = 0.0f)
         {
+
             this.pathfindingManager = GameObject.FindObjectOfType<PathfindingManager>();
             this.gridGraph = grid;
             this.Open = open;
             this.Closed = closed;
             this.InProgress = false;
             this.Heuristic = heuristic;
-            this.NodesPerSearch = 20; //by default we process all nodes in a single request, but you should change this
-            this.TieBreakingWeight = 2.0f;
-            this.HeuristicMultiplier = 1.5f;
+            this.NodesPerSearch = 30;
+            this.TieBreakingWeight = tieBreakingWeight;
+            this.MaxNodes = 20000;
+            this.NodesSearched = 0;
         }
         public virtual void Preprocess()
         {
@@ -72,24 +74,20 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             this.GoalPositionY = goalY;
             this.StartNode = gridGraph.GetNode(StartPositionX, StartPositionY);
             this.GoalNode = gridGraph.GetNode(GoalPositionX, GoalPositionY);
-
-            //if it is not possible to quantize the positions and find the corresponding nodes, then we cannot proceed
+            
             if (this.StartNode == null || this.GoalNode == null) return;
 
-            // Reset debug and relevat variables here
             this.InProgress = true;
             this.TotalProcessedNodes = 0;
             this.TotalProcessingTime = 0.0f;
             this.MaxOpenNodes = 0;
 
-            //Starting with the first node
             var initialNode = new NodeRecord(StartNode)
             {
                 gCost = 0,
                 hCost = this.Heuristic.H(this.StartNode, this.GoalNode),
             };
 
-            //initialize open and closed lists
             initialNode.CalculateFCost(TieBreakingWeight);
             this.Open.Clear();
             this.Open.Add(initialNode);
@@ -99,101 +97,102 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
 
         public virtual bool Search(out List<NodeRecord> solution, bool returnPartialSolution = true)
         {
-            NodeRecord foundNode;
             int ProcessedNodesPerFrame = 0;
             NodeRecord currentNode;
 
             while (Open.CountOpen() > 0)
             {
                 currentNode = Open.GetBestAndRemove();
-                if(Open.CountOpen() > MaxOpenNodes)
+                if (currentNode.Node == GoalNode)
                 {
-                    MaxOpenNodes = Open.CountOpen();
-                }
-                foreach (Connection connection in gridGraph.GetConnections(currentNode.Node))
-                {
-                    this.TotalProcessedNodes++;
-                    ProcessedNodesPerFrame++;
-                    foundNode = ProcessChildNode(currentNode, connection);
-                    if (foundNode.Equals(GoalNode))
-                    {
-                        solution = CalculatePath(foundNode);
-                        return true;
-                    }
-                    else if(ProcessedNodesPerFrame == 30){
-                        solution = null;
-                        if (returnPartialSolution) { 
-                            solution = CalculatePath(foundNode); 
-                        }
-                        return false;
-                    }
+                    solution = CalculatePath(currentNode);
+                    return true;
                 }
 
                 Closed.Add(currentNode);
                 currentNode.Node.status = VisualNodeStatus.Closed;
+                NodesSearched++;
+
+                foreach (Connection connection in gridGraph.GetConnections(currentNode.Node))
+                {
+                    this.TotalProcessedNodes++;
+                    ProcessedNodesPerFrame++;
+                    ProcessChildNode(currentNode, connection);
+                }
+
+                if (MaxNodes == this.NodesSearched)
+                {
+                    solution = null;
+                    if (returnPartialSolution) { 
+                        solution = CalculatePath(currentNode); 
+                    }
+                    return true;
+                }
+
+                if (ProcessedNodesPerFrame >= this.NodesPerSearch)
+                {
+                    solution = null;
+                    if (returnPartialSolution) { 
+                        solution = CalculatePath(currentNode); 
+                    }
+                    return false;
+                }
+
+                if(Open.CountOpen() > MaxOpenNodes)
+                {
+                    MaxOpenNodes = Open.CountOpen();
+                }
+
             }
 
-            //Out of nodes on the openList
             solution = null;
             return false;
 
         }
 
-        protected virtual NodeRecord ProcessChildNode(NodeRecord parentNode, Connection connection)
+        protected virtual void ProcessChildNode(NodeRecord parentNode, Connection connection)
         {
-            Node node = connection.ToNode;
-            float newCost = parentNode.gCost + connection.Cost + this.Heuristic.H(node, this.GoalNode);
-            NodeRecord newNodeRecord = new NodeRecord(node);
+            Node childNode = connection.ToNode;
+            float newCost = parentNode.gCost + connection.Cost;
 
             // Calculate newCost: parent cost + Calculate Distance Cont 
             // float newCost = parentNode.gCost + CalculateDistanceCost(parentNode, node) + this.Heuristic.H(node, this.GoalNode);
             // Calculate newCost: parent cost + Calculate Distance Cont 
 
-            //If in Closed...
-            NodeRecord currentClosedNode = Closed.Find(newNodeRecord);
-            NodeRecord currentOpenNode = Open.Find(newNodeRecord);
-            if (currentClosedNode != null)
-            {
-                if (newCost < currentClosedNode.gCost)
-                {
-                    currentClosedNode.parent = parentNode;
-                    currentClosedNode.gCost = parentNode.gCost + connection.Cost;
-                    currentClosedNode.fCost = newCost;
-                    currentClosedNode.hCost = newCost - currentClosedNode.gCost;
-                    Closed.Remove(currentClosedNode);
-                    Open.Add(currentClosedNode);
+            NodeRecord closedNode = this.Closed.Find(new NodeRecord(childNode));
+            
+            if (closedNode != null) return;
 
-                }
-                newNodeRecord = currentClosedNode;
-            }
-            else if (currentOpenNode != null)
+            NodeRecord openNode = Open.Find(new NodeRecord(childNode));
+
+            if (openNode == null)
             {
-                if (newCost < currentOpenNode.gCost)
+                NodeRecord childNodeRecord = new NodeRecord(childNode)
                 {
-                    currentOpenNode.parent = parentNode;
-                    currentOpenNode.gCost = parentNode.gCost + connection.Cost;
-                    currentOpenNode.fCost = newCost;
-                    currentOpenNode.hCost = newCost - currentOpenNode.gCost;
-                }
-                newNodeRecord = currentOpenNode;
+                    gCost = newCost,
+                    hCost = Heuristic.H(childNode, GoalNode),
+                    parent = parentNode
+                };
+                childNodeRecord.CalculateFCost(TieBreakingWeight);
+
+                Open.Add(childNodeRecord);
+                childNodeRecord.Node.status = VisualNodeStatus.Open;
+                AddToOpenCalls++;
             }
-            else
+            else if (newCost < openNode.gCost)
             {
-                newNodeRecord.gCost = parentNode.gCost + connection.Cost;
-                newNodeRecord.fCost = newCost;
-                newNodeRecord.hCost = newCost - newNodeRecord.gCost;
-                newNodeRecord.parent = parentNode;
-                Open.Add(newNodeRecord);
+                openNode.gCost = newCost;
+                openNode.parent = parentNode;
+                openNode.CalculateFCost(TieBreakingWeight);
+
+                Open.Replace(openNode, openNode);
+                ReplaceCalls++;
             }
 
-            // Finally don't forget to update the actual Grid value:
-            pathfindingManager.gridGraph.grid.SetGridObject(node.x, node.y, node);
-            return newNodeRecord;
+            pathfindingManager.gridGraph.grid.SetGridObject(childNode.x, childNode.y, childNode);
         }
 
 
-        // Method to calculate the Path, starts from the end Node and goes up until the beggining
-        //You can implement as nodes or connections, but for the visual magic to work, in this project the final path should be represented as a sequence of nodeRecords...
         public List<NodeRecord> CalculatePath(NodeRecord endNode)
         {
             List<NodeRecord> path = new List<NodeRecord>();

@@ -27,39 +27,35 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             base.TieBreakingWeight = tieBreakingWeight;
         }
 
-        protected override NodeRecord ProcessChildNode(NodeRecord parentNode, Connection connection)
+        protected override void ProcessChildNode(NodeRecord parentNode, Connection connection)
         {
             Node childNode = connection.ToNode;
             float newGCost = parentNode.gCost + connection.Cost;
 
-            // Access the child node's record directly from the NodeRecordArray using the node's index
             NodeRecord childNodeRecord = nodeRecordArray.GetNodeRecordByIndex(childNode.Index);
 
             if (childNodeRecord.Category == NodeCategory.Closed)
             {
-                return null; // Skip if it's in the closed set
+                return;
             }
 
             if (childNodeRecord.Category == NodeCategory.Unvisited || newGCost < childNodeRecord.gCost)
             {
-                // Update the gCost (gCost), parent, and FValue
                 childNodeRecord.gCost = newGCost;
-                childNodeRecord.hCost = this.Heuristic.H(childNode, this.GoalNode) * this.HeuristicMultiplier;
+                childNodeRecord.hCost = childNodeRecord.gCost + this.Heuristic.H(childNode, this.GoalNode);
                 childNodeRecord.parent = parentNode;
-                Debug.Log(TieBreakingWeight);
                 childNodeRecord.CalculateFCost(TieBreakingWeight);
                 
                 if (childNodeRecord.Category == NodeCategory.Unvisited)
                 {
-                    ((IOpenSet)nodeRecordArray).Add(childNodeRecord); // Add to open set
+                    ((IOpenSet)nodeRecordArray).Add(childNodeRecord);
                 }
                 else
                 {
-                    nodeRecordArray.Replace(childNodeRecord, childNodeRecord); // Update in open set
+                    nodeRecordArray.Replace(childNodeRecord, childNodeRecord);
                 }
             }
             pathfindingManager.gridGraph.grid.SetGridObject(childNode.x, childNode.y, childNode);
-            return null;
         }
     }
 }
