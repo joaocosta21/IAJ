@@ -11,7 +11,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
     {
         public AStarPathfinding forwardSearch;
         public AStarPathfinding backwardSearch;
-        private Node meetingNode;
+        private NodeRecord meetingNode;
         
         public bool InProgress { get; set; }
         public float TotalProcessingTime { get; set; }
@@ -65,11 +65,16 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             bool backwardFinished = backwardSearch.Search(out backwardSolution, partialPath);
 
             // Check if there's a meeting node between the two searches
-            Node meetingNode = FindMeetingNode();
+            this.meetingNode = FindMeetingNode();
             
             // If a meeting node is found, combine the paths
             if (meetingNode != null)
             {
+                if (!partialPath)
+                {
+                    forwardSolution = forwardSearch.CalculatePath(meetingNode);
+                    backwardSolution = backwardSearch.CalculatePath(meetingNode);
+                }
                 solution = CombinePaths(forwardSolution, backwardSolution, meetingNode);
                 this.InProgress = false;
                 return true;
@@ -96,13 +101,13 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             return false;
         }
 
-        private Node FindMeetingNode()
+        private NodeRecord FindMeetingNode()
         {
             foreach (var nodeRecord in this.forwardSearch.Closed.All())
             {
                 if (this.backwardSearch.Closed.Find(nodeRecord) != null)
                 {
-                    return nodeRecord.Node; 
+                    return nodeRecord; 
                 }
             }
 
@@ -114,19 +119,19 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             // No preprocessing for BiDirectional A*, but it could be added if necessary
         }
 
-        private List<NodeRecord> CombinePaths(List<NodeRecord> forwardPath, List<NodeRecord> backwardPath, Node meetingNode)
+        private List<NodeRecord> CombinePaths(List<NodeRecord> forwardPath, List<NodeRecord> backwardPath, NodeRecord meetingNode)
         {
             List<NodeRecord> path = new List<NodeRecord>();
 
             foreach (var nodeRecord in forwardPath)
             {
                 path.Add(nodeRecord);
-                if (nodeRecord.Node == meetingNode) break;
+                if (nodeRecord.Node.Equals(meetingNode)) break;
             }
 
             for (int i = backwardPath.Count - 1; i >= 0; i--)
             {
-                if (backwardPath[i].Node == meetingNode) continue;
+                if (backwardPath[i].Node.Equals(meetingNode)) continue;
                 path.Add(backwardPath[i]);
             }
 
