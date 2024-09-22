@@ -257,21 +257,23 @@ public class PathfindingManager : MonoBehaviour
 
         // Input Handler: deals with most keyboard inputs
         InputHandler();
-
         // Make sure you tell the pathfinding algorithm to keep searching
         if (this.pathfinding.InProgress)
         {
             var finished = this.pathfinding.Search(out this.solution, partialPath);
             if (finished)
             {
+
                 this.pathfinding.InProgress = false;
                 this.visualGrid.DrawPath(this.solution);
+
+                Debug.Log(this.solution.Count);
             }
             else if (partialPath){
                 if (this.pathfinding is BiDirectionalAStarPathfinding biDirectionalAStar){
                     var forwardPath = ((BiDirectionalAStarPathfinding)this.pathfinding).forwardSearch.GetPartialSolution();
                     var backwardPath = ((BiDirectionalAStarPathfinding)this.pathfinding).backwardSearch.GetPartialSolution();
-                    this.visualGrid.DrawPartialPathTwice(forwardPath, backwardPath);
+                    this.visualGrid.DrawPathTwice(forwardPath,backwardPath,Color.yellow);
                 }
                 else{
                     this.visualGrid.DrawPartialPath(this.solution);

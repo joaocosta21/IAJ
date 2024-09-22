@@ -63,18 +63,19 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             // Step through forward and backward searches
             bool forwardFinished = forwardSearch.Search(out forwardSolution, partialPath);
             bool backwardFinished = backwardSearch.Search(out backwardSolution, partialPath);
-
+            if (forwardSearch.Open.CountOpen() + backwardSearch.Open.CountOpen() > MaxOpenNodes)
+            {
+                MaxOpenNodes = forwardSearch.Open.CountOpen() + backwardSearch.Open.CountOpen();
+            }
             // Check if there's a meeting node between the two searches
             this.meetingNode = FindMeetingNode();
             
             // If a meeting node is found, combine the paths
             if (meetingNode != null)
             {
-                if (!partialPath)
-                {
-                    forwardSolution = forwardSearch.CalculatePath(meetingNode);
-                    backwardSolution = backwardSearch.CalculatePath(meetingNode);
-                }
+                forwardSolution = forwardSearch.CalculatePath(meetingNode);
+                backwardSolution = backwardSearch.CalculatePath(meetingNode);
+                TotalProcessedNodes = forwardSearch.TotalProcessedNodes + backwardSearch.TotalProcessedNodes;
                 solution = CombinePaths(forwardSolution, backwardSolution, meetingNode);
                 this.InProgress = false;
                 return true;
@@ -94,6 +95,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             {
                 solution = CombinePaths(forwardSolution, backwardSolution, meetingNode);
                 this.InProgress = false;
+                
                 return true;
             }
 
@@ -126,16 +128,25 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             foreach (var nodeRecord in forwardPath)
             {
                 path.Add(nodeRecord);
-                if (nodeRecord.Node.Equals(meetingNode)) break;
+                //if (nodeRecord.Node.Equals(meetingNode)) break;
             }
 
-            for (int i = backwardPath.Count - 1; i >= 0; i--)
+            foreach (var nodeRecord in backwardPath)
             {
-                if (backwardPath[i].Node.Equals(meetingNode)) continue;
-                path.Add(backwardPath[i]);
+                path.Add(nodeRecord);
+                //if (nodeRecord.Node.Equals(meetingNode)) break;
             }
-
             return path;
+        }
+
+        public List<NodeRecord> GetFowardMeetingPath()
+        {
+            return this.forwardSearch.CalculatePath(meetingNode);
+        }
+
+        public List<NodeRecord> GetBackwardMeetingPath()
+        {
+            return this.backwardSearch.CalculatePath(meetingNode);
         }
 
         public List<NodeRecord> GetForwardPartialSolution()

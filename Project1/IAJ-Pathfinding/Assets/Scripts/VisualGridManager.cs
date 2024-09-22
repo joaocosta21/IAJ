@@ -4,6 +4,7 @@ using Assets.Scripts.IAJ.Unity.Pathfinding.DataStructures;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 public class VisualGridManager : MonoBehaviour
@@ -218,7 +219,7 @@ public class VisualGridManager : MonoBehaviour
         }
     }
 
-    public void DrawPartialPathTwice(List<NodeRecord> path, List<NodeRecord> path1)
+    public void DrawPathTwice(List<NodeRecord> path, List<NodeRecord> path1, Color color)
     {
         UpdateGrid();
 
@@ -234,13 +235,13 @@ public class VisualGridManager : MonoBehaviour
                 continue;
             }
 
-            if (index == path.Count)
+            if (index == Paths.Count)
             {
                 this.SetObjectColor(p.Node.x, p.Node.y, new Color(1f, 0f, 1f));
                 break;
             }
 
-            this.SetObjectColor(p.Node.x, p.Node.y, Color.yellow);
+            this.SetObjectColor(p.Node.x, p.Node.y, color);
         }
     }
 
