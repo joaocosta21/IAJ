@@ -180,7 +180,7 @@ public class PathfindingManager : MonoBehaviour
                 this.pathfinding = new NodeArrayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
                 break;
             case AStarType.GatewayAstar:
-                // this.pathfinding = new GatewayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
+                this.pathfinding = new GatewayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
                 break;
             case AStarType.BiDirectionalAStarPathfinding:
                 this.pathfinding = new BiDirectionalAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);

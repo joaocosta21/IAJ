@@ -80,6 +80,11 @@ public class UIManager : MonoBehaviour
 
                         if (manager.pathfinding is BiDirectionalAStarPathfinding biDirectionalAStar)
                         {
+                            // Reset the text fields before updating them
+                            debugG.text = "";
+                            debugF.text = "";
+                            debugH.text = "";
+                            
                             var forwardOpenNode = manager.pathfinding.Open.Find(nodeRecord);
                             var backwardOpenNode = manager.pathfinding.Open2.Find(nodeRecord);
                             var forwardClosedNode = manager.pathfinding.Closed.Find(nodeRecord);
@@ -158,5 +163,4 @@ public class UIManager : MonoBehaviour
         debugtotalProcessedNodes.text = "TotalPNodes: " + manager.pathfinding.TotalProcessedNodes;
         debugtotalProcessingTime.text = "TotalPTime: " + manager.pathfinding.TotalProcessingTime;
     }
-
 }

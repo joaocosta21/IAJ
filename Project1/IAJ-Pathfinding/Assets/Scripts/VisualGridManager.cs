@@ -191,7 +191,6 @@ public class VisualGridManager : MonoBehaviour
                 this.SetObjectColor(p.Node.x, p.Node.y, Color.green + new Color(0.5f, 0.0f, 0.5f));
                 break;
             }
-
             this.SetObjectColor(p.Node.x, p.Node.y, Color.green);
         }
     }
