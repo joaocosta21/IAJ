@@ -13,13 +13,16 @@ using Connection = Assets.Scripts.Grid.Connection;
 namespace Assets.Scripts.IAJ.Unity.Pathfinding
 {
     [Serializable]
-    public class AStarPathfinding
+    public class AStarPathfinding : IPathfinding
     {
         PathfindingManager pathfindingManager;
         public IGraph gridGraph { get; set; }
         public bool InProgress { get; set; }
         public IOpenSet Open { get; protected set; }
         public IClosedSet Closed { get; protected set; }
+        public IOpenSet Open2 { get; protected set; }
+        public IClosedSet Closed2 { get; protected set; }
+
         public IHeuristic Heuristic { get; protected set; }
 
         public Node GoalNode { get; set; }
@@ -55,6 +58,8 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             this.gridGraph = grid;
             this.Open = open;
             this.Closed = closed;
+            this.Open2 = null;
+            this.Closed2 = null;
             this.InProgress = false;
             this.Heuristic = heuristic;
             this.NodesPerSearch = 30;
@@ -170,7 +175,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 NodeRecord childNodeRecord = new NodeRecord(childNode)
                 {
                     gCost = newCost,
-                    hCost = Heuristic.H(childNode, GoalNode),
+                    hCost = this.Heuristic.H(childNode, GoalNode),
                     parent = parentNode
                 };
                 childNodeRecord.CalculateFCost(TieBreakingWeight);
@@ -209,5 +214,18 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             return path;
         }
 
+        public List<NodeRecord> GetPartialSolution()
+        {
+            // Return the current best path to the node with the lowest fCost in the Open set
+            NodeRecord currentBestNode = this.Open.PeekBest();
+            
+            if (currentBestNode == null)
+            {
+                return new List<NodeRecord>(); // No valid partial path
+            }
+
+            // Calculate and return the path from the current best node
+            return this.CalculatePath(currentBestNode);
+        }
     }
 }

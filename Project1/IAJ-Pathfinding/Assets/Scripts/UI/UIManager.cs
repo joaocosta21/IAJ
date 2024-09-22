@@ -77,80 +77,86 @@ public class UIManager : MonoBehaviour
                     {
                         debugCoordinates.text = " x:" + x + "; y:" + y;
                         var nodeRecord = new NodeRecord(node);
-                        var openNode = manager.pathfinding.Open.Find(nodeRecord);
-                        if (openNode != null)
+
+                        if (manager.pathfinding is BiDirectionalAStarPathfinding biDirectionalAStar)
                         {
-                            debugG.text = "G:" + openNode.gCost;
-                            debugF.text = "F:" + openNode.fCost;
-                            debugH.text = "In Open \n H:" + openNode.hCost;
+                            var forwardOpenNode = manager.pathfinding.Open.Find(nodeRecord);
+                            var backwardOpenNode = manager.pathfinding.Open2.Find(nodeRecord);
+                            var forwardClosedNode = manager.pathfinding.Closed.Find(nodeRecord);
+                            var backwardClosedNode = manager.pathfinding.Closed2.Find(nodeRecord);
+
+                            // Show forward search data
+                            if (forwardOpenNode != null)
+                            {
+                                debugG.text = "Forward G:" + forwardOpenNode.gCost;
+                                debugF.text = "Forward F:" + forwardOpenNode.fCost;
+                                debugH.text = "Forward In Open \n H:" + forwardOpenNode.hCost;
+                            }
+                            if (forwardClosedNode != null)
+                            {
+                                debugG.text = "Forward G:" + forwardClosedNode.gCost;
+                                debugF.text = "Forward F:" + forwardClosedNode.fCost;
+                                debugH.text = "Forward In Closed \n H:" + forwardClosedNode.hCost;
+                            }
+
+                            // Show backward search data
+                            if (backwardOpenNode != null)
+                            {
+                                debugG.text += "\nBackward G:" + backwardOpenNode.gCost;
+                                debugF.text += "\nBackward F:" + backwardOpenNode.fCost;
+                                debugH.text += "\nBackward In Open \n H:" + backwardOpenNode.hCost;
+                            }
+                            if (backwardClosedNode != null)
+                            {
+                                debugG.text += "\nBackward G:" + backwardClosedNode.gCost;
+                                debugF.text += "\nBackward F:" + backwardClosedNode.fCost;
+                                debugH.text += "\nBackward In Closed \n H:" + backwardClosedNode.hCost;
+                            }
+
+                            if (forwardOpenNode == null && forwardClosedNode == null && backwardOpenNode == null && backwardClosedNode == null)
+                            {
+                                debugG.text = "G: ? (Not in Forward or Backward)";
+                                debugF.text = "F: ? (Not in Forward or Backward)";
+                                debugH.text = "H: ? (Not in Forward or Backward)";
+                            }
                         }
-                        var closedNode = manager.pathfinding.Closed.Find(nodeRecord);
-                        if (closedNode != null)
+                        else
                         {
-                            debugG.text = "G:" + closedNode.gCost;
-                            debugF.text = "F:" + closedNode.fCost;
-                            debugH.text = "In Closed \n H:" + closedNode.hCost;
-                        }
-                        if (closedNode != null && openNode != null)
-                        {
-                            debugG.text = "G:" + closedNode.gCost;
-                            debugF.text = "F:" + closedNode.fCost;
-                            debugH.text = "In Closed and Open!!!! \n H:" + closedNode.hCost;
-                        }
-                        if (closedNode == null && openNode == null)
-                        {
-                            debugG.text = "G: ?";
-                            debugF.text = "F: ?";
-                            debugH.text = "Neither in Closed nor Open!!!! \n H: ?";
+                            // Handle single A* case
+                            var openNode = manager.pathfinding.Open.Find(nodeRecord);
+                            var closedNode = manager.pathfinding.Closed.Find(nodeRecord);
+
+                            if (openNode != null)
+                            {
+                                debugG.text = "G:" + openNode.gCost;
+                                debugF.text = "F:" + openNode.fCost;
+                                debugH.text = "In Open \n H:" + openNode.hCost;
+                            }
+                            if (closedNode != null)
+                            {
+                                debugG.text = "G:" + closedNode.gCost;
+                                debugF.text = "F:" + closedNode.fCost;
+                                debugH.text = "In Closed \n H:" + closedNode.hCost;
+                            }
+                            if (closedNode == null && openNode == null)
+                            {
+                                debugG.text = "G: ? (Not in Open or Closed)";
+                                debugF.text = "F: ? (Not in Open or Closed)";
+                                debugH.text = "H: ? (Not in Open or Closed)";
+                            }
                         }
 
                         debugWalkable.text = "IsWalkable:" + node.isWalkable;
                         debugDArray.text = String.Empty;
-                        /*if (node.isWalkable)
-                        {
-                           if (useGoal)
-                            {
-                                var ss = new StringBuilder();
-                                var goalBoundingPathfinder = (GoalBoundAStarPathfinding)manager.pathfinding;
-                                var bounds = goalBoundingPathfinder.goalBounds[x, y];
-                                foreach (Direction dir in Enum.GetValues(typeof(Direction)))
-                                {
-                                    var bound = bounds[(int)dir];
-                                    if(bound.init)
-                                    {
-                                        ss.Append(Enum.GetName(typeof(Direction), dir));
-                                        ss.Append(": ");
-                                        ss.Append(" x1=");
-                                        ss.Append(bound.x1);
-                                        ss.Append(" y1=");
-                                        ss.Append(bound.y1);
-
-                                        ss.Append(" x2=");
-                                        ss.Append(bound.x2);
-                                        ss.Append(" y2=");
-                                        ss.Append(bound.y2);
-
-                                        ss.AppendLine();
-
-                                        debugDArray.text = ss.ToString();
-                                    }
-                                }
-
-                            }
-
-                        }*/
                     }
                 }
-
             }
         }
 
-        // if manager finished search display statistics from the search
-        // if (!this.manager.pathfinding.InProgress)
-        {
-                debugMaxNodes.text = "MaxOpenNodes:" + manager.pathfinding.MaxOpenNodes;
-                debugtotalProcessedNodes.text = "TotalPNodes:" + manager.pathfinding.TotalProcessedNodes;
-                debugtotalProcessingTime.text = "TotalPTime:" + manager.pathfinding.TotalProcessingTime;
-            }
-        }
+        // Show pathfinding statistics
+        debugMaxNodes.text = "MaxOpenNodes: " + manager.pathfinding.MaxOpenNodes;
+        debugtotalProcessedNodes.text = "TotalPNodes: " + manager.pathfinding.TotalProcessedNodes;
+        debugtotalProcessingTime.text = "TotalPTime: " + manager.pathfinding.TotalProcessingTime;
+    }
+
 }

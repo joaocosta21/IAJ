@@ -42,7 +42,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             if (childNodeRecord.Category == NodeCategory.Unvisited || newGCost < childNodeRecord.gCost)
             {
                 childNodeRecord.gCost = newGCost;
-                childNodeRecord.hCost = childNodeRecord.gCost + this.Heuristic.H(childNode, this.GoalNode);
+                childNodeRecord.hCost = this.Heuristic.H(childNode, this.GoalNode);
                 childNodeRecord.parent = parentNode;
                 childNodeRecord.CalculateFCost(TieBreakingWeight);
                 

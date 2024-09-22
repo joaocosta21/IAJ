@@ -58,7 +58,8 @@ public class PathfindingManager : MonoBehaviour
         Vanilla,
         NodeArray,
         GatewayAstar,
-        NodeArrayGoalBounding
+        NodeArrayGoalBounding,
+        BiDirectionalAStarPathfinding
     }
 
     public enum OpenSetType
@@ -76,8 +77,6 @@ public class PathfindingManager : MonoBehaviour
         ZeroHeuristic,
         EuclideanDistance,
         ManhattanDistance,
-        
-        WeightedManhattanHeuristic
     }
 
     [Header("Pahfinding Settings")]
@@ -98,7 +97,7 @@ public class PathfindingManager : MonoBehaviour
     public static float cellSize;
  
     //Essential Pathfind classes 
-    public AStarPathfinding pathfinding { get; set; }
+    public IPathfinding pathfinding { get; set; }
 
     //The Visual Grid
     private VisualGridManager visualGrid;
@@ -143,9 +142,6 @@ public class PathfindingManager : MonoBehaviour
             case Heuristics.ManhattanDistance:
                 heuristics = new ManhattanDistance();
                 break;
-            case Heuristics.WeightedManhattanHeuristic:
-                heuristics = new WeightedManhattanHeuristic();
-                break;
             default:
                 throw new Exception();
         }
@@ -185,6 +181,9 @@ public class PathfindingManager : MonoBehaviour
                 break;
             case AStarType.GatewayAstar:
                 // this.pathfinding = new GatewayAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
+                break;
+            case AStarType.BiDirectionalAStarPathfinding:
+                this.pathfinding = new BiDirectionalAStarPathfinding(gridGraph, heuristics, tieBreakingWeight);
                 break;
             default:
                 break;
@@ -261,7 +260,7 @@ public class PathfindingManager : MonoBehaviour
 
         // Make sure you tell the pathfinding algorithm to keep searching
         if (this.pathfinding.InProgress)
-        {   
+        {
             var finished = this.pathfinding.Search(out this.solution, partialPath);
             if (finished)
             {
@@ -269,7 +268,14 @@ public class PathfindingManager : MonoBehaviour
                 this.visualGrid.DrawPath(this.solution);
             }
             else if (partialPath){
-                this.visualGrid.DrawPartialPath(this.solution);
+                if (this.pathfinding is BiDirectionalAStarPathfinding biDirectionalAStar){
+                    var forwardPath = ((BiDirectionalAStarPathfinding)this.pathfinding).forwardSearch.GetPartialSolution();
+                    var backwardPath = ((BiDirectionalAStarPathfinding)this.pathfinding).backwardSearch.GetPartialSolution();
+                    this.visualGrid.DrawPartialPathTwice(forwardPath, backwardPath);
+                }
+                else{
+                    this.visualGrid.DrawPartialPath(this.solution);
+                }
             }
             // Debug.Log(pathfinding.AddToOpenCalls+" open");
 

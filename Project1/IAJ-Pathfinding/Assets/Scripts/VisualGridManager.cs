@@ -197,9 +197,35 @@ public class VisualGridManager : MonoBehaviour
 
     public void DrawPartialPath(List<NodeRecord> path)
     {
-        UpdateGrid(); 
+        UpdateGrid();
         int index = 0;
         foreach (NodeRecord p in path)
+        {
+            index += 1;
+            if (index == 1)
+            {
+                this.SetObjectColor(p.Node.x, p.Node.y, Color.cyan);
+                continue;
+            }
+
+            if (index == path.Count)
+            {
+                this.SetObjectColor(p.Node.x, p.Node.y, new Color(1f, 0f, 1f));
+                break;
+            }
+
+            this.SetObjectColor(p.Node.x, p.Node.y, Color.yellow);
+        }
+    }
+
+    public void DrawPartialPathTwice(List<NodeRecord> path, List<NodeRecord> path1)
+    {
+        UpdateGrid();
+
+        List<NodeRecord> Paths = new List<NodeRecord>(path);
+        Paths.AddRange(path1);
+        int index = 0;
+        foreach (NodeRecord p in Paths)
         {
             index += 1;
             if (index == 1)
