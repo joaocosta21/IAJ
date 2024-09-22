@@ -9,16 +9,16 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
     public class GatewayAStarPathfinding : AStarPathfinding
     {
         private PathfindingManager pathfindingManager;
-        private Dictionary<(Node, Node), float> gatewayDistances; // Store precomputed distances between gateways
-        private List<Node> gateways; // List of gateways
-        private int[,] zones; // Store zone information for each node in the grid
+        private Dictionary<(Node, Node), float> gatewayDistances;
+        private List<Node> gateways;
+        private int[,] zones;
         private int currentZoneID;
 
-        // Optimization: Precomputed nearest gateway for each node
         private Dictionary<Node, Node> nearestGatewayMap;
         
-        // Optimization: Gateway-to-gateway distance matrix
-        private float[,] gatewayDistanceMatrix;
+        private float[,,] gatewayDistanceMatrix;
+
+        private IHeuristic heuristic;
 
         public GatewayAStarPathfinding(IGraph grid, IHeuristic heuristic, float tieBreakingWeight = 0.0f)
             : base(grid, null, null, heuristic, tieBreakingWeight)
@@ -26,19 +26,20 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             this.Open = new NodePriorityHeap();
             this.Closed = new ClosedDictionary();
             this.gateways = new List<Node>();
+            this.heuristic = heuristic;
+            this.nearestGatewayMap = new Dictionary<Node, Node>();
             this.gatewayDistances = new Dictionary<(Node, Node), float>();
             this.TieBreakingWeight = tieBreakingWeight;
             this.pathfindingManager = GameObject.FindObjectOfType<PathfindingManager>();
         }
 
-        // Preprocess the grid to identify zones, gateways, and precompute distances
         public override void Preprocess()
         {
             DecomposeMapIntoZones();
             IdentifyGateways();
             PrecomputeGatewayDistances();
             PrecomputeNearestGateways();
-            PrintZones();
+            // PrintZones();
         }
 
         private void DecomposeMapIntoZones()
@@ -111,7 +112,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 currZoneID++;
             }
 
-            PrintZones();
+            // PrintZones();
         }
 
         private Node GetTopLeftFreeNode()
@@ -179,41 +180,92 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             return neighborZones.Count > 0;
         }
 
-        // Optimization: Precompute nearest gateway for each node
         private void PrecomputeNearestGateways()
         {
-            nearestGatewayMap = new Dictionary<Node, Node>();
-            foreach (var node in gridGraph.AllNodes())
+            foreach (Node node in gridGraph.AllNodes())
             {
-                if (!node.isWalkable) continue;
+                Node nearestGateway = null;
+                float minDistance = float.MaxValue;
 
-                Node nearestGateway = FindNearestGateway(node);
-                nearestGatewayMap[node] = nearestGateway;
+                foreach (Node gateway in gateways)
+                {
+                    float distance = OctileDistance(node, gateway);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        nearestGateway = gateway;
+                    }
+                }
+
+                if (nearestGateway != null)
+                {
+                    nearestGatewayMap[node] = nearestGateway;
+                }
             }
         }
 
-        // Optimization: Precompute gateway-to-gateway distances using Floyd-Warshall or Dijkstra
         private void PrecomputeGatewayDistances()
         {
             int gatewayCount = gateways.Count;
-            gatewayDistanceMatrix = new float[gatewayCount, gatewayCount];
+            gatewayDistanceMatrix = new float[gatewayCount, gatewayCount, 4];
 
             for (int i = 0; i < gatewayCount; i++)
             {
                 for (int j = i + 1; j < gatewayCount; j++)
                 {
-                    float distance = CalculateDistanceBetweenGateways(gateways[i], gateways[j]);
-                    gatewayDistanceMatrix[i, j] = distance;
-                    gatewayDistanceMatrix[j, i] = distance;
+                    if (zones[gateways[i].x, gateways[i].y] == zones[gateways[j].x, gateways[j].y])
+                    {
+                        // Calculate distances using A* or Dijkstra
+                        float distanceIJ = CalculateDistanceBetweenGateways(gateways[i], gateways[j]);
+                        float distanceJI = CalculateDistanceBetweenGateways(gateways[j], gateways[i]);
+
+                        // Store four costs
+                        gatewayDistanceMatrix[i, j, 0] = distanceIJ;
+                        gatewayDistanceMatrix[j, i, 1] = distanceJI;
+                        gatewayDistanceMatrix[i, j, 2] = distanceJI; // Reverse (G_i to G_j)
+                        gatewayDistanceMatrix[j, i, 3] = distanceIJ; // Reverse (G_j to G_i)
+                    }
+                    else
+                    {
+                        // Assign a very high distance if no path exists
+                        for (int k = 0; k < 4; k++)
+                        {
+                            gatewayDistanceMatrix[i, j, k] = float.MaxValue;
+                            gatewayDistanceMatrix[j, i, k] = float.MaxValue;
+                        }
+                    }
                 }
             }
         }
 
+
         private float CalculateDistanceBetweenGateways(Node start, Node end)
         {
-            float dx = start.x - end.x;
-            float dy = start.y - end.y;
-            return Mathf.Sqrt(dx * dx + dy * dy);
+            AStarPathfinding pathfinding = new AStarPathfinding(gridGraph, new NodePriorityHeap(), new ClosedDictionary(), this.heuristic);
+
+            pathfinding.StartNode = start;
+            pathfinding.GoalNode = end;
+
+            gridGraph.GetNode(start.x, start.y).isWalkable = false;
+            gridGraph.GetNode(end.x, end.y).isWalkable = false;
+
+            List<NodeRecord> solution;
+            bool pathFound = pathfinding.Search(out solution);
+
+            gridGraph.GetNode(start.x, start.y).isWalkable = true;
+            gridGraph.GetNode(end.x, end.y).isWalkable = true;
+
+            if (pathFound && solution != null)
+            {
+                float totalDistance = 0;
+                foreach (var nodeRecord in solution)
+                {
+                    totalDistance += nodeRecord.gCost;
+                }
+                return totalDistance;
+            }
+
+            return float.MaxValue;
         }
 
         private Node FindNearestGateway(Node node)
@@ -221,50 +273,66 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             Node nearestGateway = null;
             float minDistance = float.MaxValue;
 
+            int currentZone = zones[node.x, node.y];
+
             foreach (var gateway in gateways)
             {
-                float distance = this.Heuristic.H(node, gateway);
-                if (distance < minDistance)
+                if (zones[gateway.x, gateway.y] == currentZone)
                 {
-                    minDistance = distance;
-                    nearestGateway = gateway;
+                    float distance = this.Heuristic.H(node, gateway);
+
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        nearestGateway = gateway;
+                    }
                 }
             }
-
             return nearestGateway;
         }
 
-        // Optimized heuristic calculation
-        private float CalculateHeuristic(Node currentNode, Node goalNode)
+
+        public float CalculateHeuristic(Node currentNode, Node goalNode)
         {
-            Node nearestGatewayToStart = nearestGatewayMap[currentNode];
-            Node nearestGatewayToGoal = nearestGatewayMap[goalNode];
+            Node nearestGatewayToStart = nearestGatewayMap.ContainsKey(currentNode) ? nearestGatewayMap[currentNode] : null;
+            Node nearestGatewayToGoal = nearestGatewayMap.ContainsKey(goalNode) ? nearestGatewayMap[goalNode] : null;
+
+            float directHeuristic = this.heuristic.H(currentNode, goalNode);
+
+            if (nearestGatewayToStart == null || nearestGatewayToGoal == null)
+            {
+                return directHeuristic;
+            }
 
             int startGatewayIndex = gateways.IndexOf(nearestGatewayToStart);
             int goalGatewayIndex = gateways.IndexOf(nearestGatewayToGoal);
 
-            float gatewayDistance = gatewayDistanceMatrix[startGatewayIndex, goalGatewayIndex];
-            float startToGatewayDistance = this.Heuristic.H(currentNode, nearestGatewayToStart);
-            float goalToGatewayDistance = this.Heuristic.H(goalNode, nearestGatewayToGoal);
+            float gatewayDistance = gatewayDistanceMatrix[startGatewayIndex, goalGatewayIndex, 0]; // Default path
 
-            return startToGatewayDistance + gatewayDistance + goalToGatewayDistance;
+            // If you want to choose between multiple costs based on context (e.g., directions)
+            // you can refine this logic by considering the node's direction, current area, etc.
+            // For simplicity, using one of the precomputed distances here.
+            float startToGatewayDistance = OctileDistance(currentNode, nearestGatewayToStart);
+            float goalToGatewayDistance = OctileDistance(nearestGatewayToGoal, goalNode);
+
+            float gatewayHeuristic = startToGatewayDistance + gatewayDistance + goalToGatewayDistance;
+
+            return Mathf.Min(directHeuristic, gatewayHeuristic);
         }
+
 
         public override bool Search(out List<NodeRecord> solution, bool returnPartialSolution = false)
         {
             return base.Search(out solution, returnPartialSolution);
         }
 
-        // Override the ProcessChildNode function to include optimized heuristic
         protected override void ProcessChildNode(NodeRecord parentNode, Connection connection)
         {
             Node childNode = connection.ToNode;
             float newGCost = parentNode.gCost + connection.Cost;
 
-            // Use the optimized heuristic calculation
             float hCost = CalculateHeuristic(childNode, this.GoalNode);
 
-            // Proceed with regular A* logic for node processing
             NodeRecord childNodeRecord = new NodeRecord(childNode)
             {
                 gCost = newGCost,
@@ -290,5 +358,12 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 Open.Replace(openNode, childNodeRecord);
             }
         }
+        private float OctileDistance(Node n, Node gateway)
+        {
+            float dx = Mathf.Abs(n.x - gateway.x);
+            float dy = Mathf.Abs(n.y - gateway.y);
+            return (dx > dy) ? dx + (dy * (Mathf.Sqrt(2) - 1)) : dy + (dx * (Mathf.Sqrt(2) - 1));
+        }
+
     }
 }
