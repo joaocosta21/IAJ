@@ -73,11 +73,12 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             // If a meeting node is found, combine the paths
             if (meetingNode != null)
             {
-                forwardSolution = forwardSearch.CalculatePath(meetingNode);
-                backwardSolution = backwardSearch.CalculatePath(meetingNode);
+                var forwardPath = forwardSearch.CalculatePath(meetingNode);
+                var backwardPath = backwardSearch.CalculatePath(meetingNode);
                 TotalProcessedNodes = forwardSearch.TotalProcessedNodes + backwardSearch.TotalProcessedNodes;
-                solution = CombinePaths(forwardSolution, backwardSolution, meetingNode);
+                solution = CombinePaths(forwardPath, backwardPath, meetingNode);
                 this.InProgress = false;
+                CleanPaths(solution);
                 return true;
             }
 
@@ -137,6 +138,15 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 //if (nodeRecord.Node.Equals(meetingNode)) break;
             }
             return path;
+        }
+
+        public void CleanPaths(List<NodeRecord> path)
+        {
+            foreach (var nodeRecord in path)
+            {
+                Closed.Remove(nodeRecord);
+                Closed2.Remove(nodeRecord);
+            }
         }
 
         public List<NodeRecord> GetFowardMeetingPath()

@@ -13,6 +13,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
         private List<Node> gateways; // List of gateways
         private int[,] zones; // Store zone information for each node in the grid
         private int currentZoneID;
+        private float HeuristicMultiplier;
 
         public GatewayAStarPathfinding(IGraph grid, IHeuristic heuristic, float tieBreakingWeight = 0.0f)
             : base(grid, null, null, heuristic, tieBreakingWeight)
@@ -23,6 +24,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             this.gatewayDistances = new Dictionary<(Node, Node), float>();
             this.TieBreakingWeight = tieBreakingWeight;
             this.pathfindingManager = GameObject.FindObjectOfType<PathfindingManager>();
+            this.HeuristicMultiplier = 1.5f;
         }
 
         // Preprocess the grid to identify zones and gateways, and precompute distances between gateways
@@ -165,7 +167,6 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
         // Precompute the distance between two gateways
         private float CalculateDistanceBetweenGateways(Node start, Node end)
         {
-            // You can use A* or another method to compute the distance
             return gridGraph.GetCost(start, end);
         }
 
@@ -174,11 +175,10 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             return base.Search(out solution, returnPartialSolution);
         }
 
-        protected override NodeRecord ProcessChildNode(NodeRecord parentNode, Connection connection)
+        protected override void ProcessChildNode(NodeRecord parentNode, Connection connection)
         {
             Node childNode = connection.ToNode;
 
-            // Use the Gateway Heuristic to calculate the heuristic cost (hCost)
             Node nearestGatewayToStart = FindNearestGateway(parentNode.Node);
             Node nearestGatewayToGoal = FindNearestGateway(GoalNode);
 
@@ -198,7 +198,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
 
             // Handle open and closed set logic as in regular A*
             NodeRecord closedNode = this.Closed.Find(childNodeRecord);
-            if (closedNode != null) return null;
+            if (closedNode != null) return;
 
             NodeRecord openNode = Open.Find(childNodeRecord);
             if (openNode == null)
@@ -212,7 +212,6 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 openNode.CalculateFCost(TieBreakingWeight);
                 Open.Replace(openNode, childNodeRecord);
             }
-            return null;
         }
 
         // Finds the nearest gateway to a given node

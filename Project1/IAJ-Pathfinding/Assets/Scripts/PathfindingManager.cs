@@ -266,8 +266,6 @@ public class PathfindingManager : MonoBehaviour
 
                 this.pathfinding.InProgress = false;
                 this.visualGrid.DrawPath(this.solution);
-
-                Debug.Log(this.solution.Count);
             }
             else if (partialPath){
                 if (this.pathfinding is BiDirectionalAStarPathfinding biDirectionalAStar){
