@@ -73,8 +73,8 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
             // If a meeting node is found, combine the paths
             if (meetingNode != null)
             {
-                var forwardPath = forwardSearch.CalculatePath(meetingNode);
-                var backwardPath = backwardSearch.CalculatePath(meetingNode);
+                var forwardPath = forwardSearch.CalculatePath(this.forwardSearch.Closed.Find(meetingNode));
+                var backwardPath = backwardSearch.CalculatePath(this.backwardSearch.Closed.Find(meetingNode));
                 TotalProcessedNodes = forwardSearch.TotalProcessedNodes + backwardSearch.TotalProcessedNodes;
                 solution = CombinePaths(forwardPath, backwardPath, meetingNode);
                 this.InProgress = false;
@@ -82,7 +82,7 @@ namespace Assets.Scripts.IAJ.Unity.Pathfinding
                 return true;
             }
 
-            // If both forward and backward searches have finished (no meeting node found earlier)
+            // If both forward and backward searches have finished
             if (forwardFinished && backwardFinished)
             {
                 // We should attempt to combine paths at the point where both searches have finished

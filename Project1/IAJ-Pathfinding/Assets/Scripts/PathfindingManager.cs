@@ -260,6 +260,7 @@ public class PathfindingManager : MonoBehaviour
         // Make sure you tell the pathfinding algorithm to keep searching
         if (this.pathfinding.InProgress)
         {
+            this.visualGrid.UpdateGrid();
             var finished = this.pathfinding.Search(out this.solution, partialPath);
             if (finished)
             {
