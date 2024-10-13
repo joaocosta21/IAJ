@@ -59,7 +59,7 @@
     <UnityVersion>2022.3.38f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Users\joaoc\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.0.3\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Users\joaoc\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.0.4\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.38f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.38f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
@@ -82,6 +82,7 @@
     <Compile Include="Assets\3rd Party\CodeMonkey\Utils\FunctionTimer.cs" />
     <Compile Include="Assets\Scripts\IAJ.Unity\Pathfinding\AStarPathfinding.cs" />
     <Compile Include="Assets\Scripts\PathfindingManager.cs" />
+    <Compile Include="Assets\Scripts\IAJ.Unity\Pathfinding\GatewayAStarPathfinding.cs" />
     <Compile Include="Assets\3rd Party\CodeMonkey\Utils\World_Mesh.cs" />
     <Compile Include="Assets\Scripts\IAJ.Unity\Utils\PrirorityQueue.cs" />
     <Compile Include="Assets\Scripts\IAJ.Unity\Pathfinding\Heuristics\ZeroHeuristic.cs" />
@@ -89,10 +90,12 @@
     <Compile Include="Assets\Scripts\IAJ.Unity\Utils\Reflection.cs" />
     <Compile Include="Assets\3rd Party\CodeMonkey\MonoBehaviours\ComponentActions.cs" />
     <Compile Include="Assets\Scripts\VisualGridManager.cs" />
+    <Compile Include="Assets\Scripts\IAJ.Unity\Pathfinding\BiDirectionalAStarPathfinding.cs" />
     <Compile Include="Assets\Scripts\IAJ.Unity\Pathfinding\Heuristics\ManhattanDistance.cs" />
     <Compile Include="Assets\Scripts\IAJ.Unity\Grid\Grid.cs" />
     <Compile Include="Assets\Scripts\UI\UIManager.cs" />
     <Compile Include="Assets\Scripts\IAJ.Unity\Grid\IConnection.cs" />
+    <Compile Include="Assets\Scripts\IAJ.Unity\Pathfinding\IPathfinding.cs" />
     <Compile Include="Assets\3rd Party\CodeMonkey\Utils\World_Sprite.cs" />
     <Compile Include="Assets\Scripts\IAJ.Unity\Grid\Connection.cs" />
     <Compile Include="Assets\Scripts\IAJ.Unity\Pathfinding\DataStructures\NodeRecord.cs" />
